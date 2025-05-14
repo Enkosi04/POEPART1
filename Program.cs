@@ -1,38 +1,32 @@
 ﻿using System;
-using System.Drawing;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Media;
-using System.Text;
+using System.Text.RegularExpressions;
 
-namespace AddSoundAndMenu
+namespace AddSoundAndEnhancedChatbot
 {
     class Program
     {
         static void Main(string[] args)
         {
-            // Play a sound (optional)
-            if (OperatingSystem.IsWindows())
+            // Play sound first
+            try
             {
-                try
-                {
-                    SoundPlayer myMusic = new SoundPlayer("sound.wav");
-                    myMusic.Load(); // Load the sound file
-                    myMusic.PlayLooping(); // Play the sound in a loop
+                SoundPlayer myMusic = new SoundPlayer("sound.wav");
+                myMusic.Load();
+                myMusic.PlayLooping();
 
-                    Console.WriteLine("Playing sound... Press Enter to stop.");
-                    Console.ReadLine(); // Keep the console app running until Enter is pressed
-                    myMusic.Stop();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error playing sound: {ex.Message}");
-                }
+                Console.WriteLine("Playing sound... Press Enter to continue.");
+                Console.ReadLine(); // Wait until user presses Enter
+                myMusic.Stop();
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("This application only runs on Windows.");
+                Console.WriteLine($"Error playing sound: {ex.Message}");
             }
 
-            // Show menu and run the selected class method
+            // Proceed to the main menu
             bool showMenu = true;
             while (showMenu)
             {
@@ -48,365 +42,258 @@ namespace AddSoundAndMenu
             Console.WriteLine("2) Importance of Strong Passwords");
             Console.WriteLine("3) How often should I change my passwords?");
             Console.WriteLine("4) How can I identify safe and suspicious links?");
-            Console.WriteLine("5) Exit");
+            Console.WriteLine("5) How to Recognizing and Avoiding Malware");
+            Console.WriteLine("6) How to secure Wifi Practises");
+            Console.WriteLine("7) Why are Regular software updates important");
+            Console.WriteLine("8) What is Data Backup and Recovery");
+            Console.WriteLine("9) Privacy Settings and data sharing");
+            Console.WriteLine("10) Importance of Two Factor Authentication");
+            Console.WriteLine("11) Exit");
             Console.Write("\r\nSelect an option: ");
 
-            // Read user input and trim whitespace
             string userInput = Console.ReadLine().Trim();
 
             switch (userInput)
             {
                 case "1":
-                    var phishingEmails = new PhishingEmails();
-                    phishingEmails.StartChatbot();
+                    Console.Clear();
+                    new CyberSecurityChatbot(phishingTopics).StartChatbot();
+                    Console.WriteLine("Press any key to return to menu...");
+                    Console.ReadKey();
                     return true;
                 case "2":
-                    var strongPasswords = new StrongPasswords();
-                    strongPasswords.StartChatbot();
+                    Console.Clear();
+                    new CyberSecurityChatbot(passwordTopics).StartChatbot();
+                    Console.WriteLine("Press any key to return to menu...");
+                    Console.ReadKey();
                     return true;
                 case "3":
-                    var changePasswords = new ChangePasswords();
-                    changePasswords.StartChatbot();
+                    Console.Clear();
+                    new CyberSecurityChatbot(changePasswordTopics).StartChatbot();
+                    Console.WriteLine("Press any key to return to menu...");
+                    Console.ReadKey();
                     return true;
                 case "4":
-                    var safeAndSuspiciousLinks = new SafeAndSuspiciousLinks();
-                    safeAndSuspiciousLinks.StartChatbot();
+                    Console.Clear();
+                    new CyberSecurityChatbot(linkTopics).StartChatbot();
+                    Console.WriteLine("Press any key to return to menu...");
+                    Console.ReadKey();
                     return true;
                 case "5":
-                    return false; // Exit the application
+                    return false; // Exit
                 default:
-                    Console.WriteLine("Invalid option. Please try again.");
-                    Console.WriteLine("Press any key to continue...");
+                    Console.Clear();
+                    Console.WriteLine("Invalid option. Try again.");
+                    Console.WriteLine("Press any key...");
                     Console.ReadKey();
-                    return true; // Show the menu again
+                    return true;
             }
         }
+
+        // Define all topic lists
+        static List<string> phishingTopics = new List<string>
+        {
+            "Phishing is a cyber attack that impersonates legitimate organizations to steal sensitive information.",
+            "Always verify the sender's email address and avoid clicking on suspicious links."
+        };
+
+        static List<string> passwordTopics = new List<string>
+        {
+            "Strong passwords are crucial for protecting your accounts.",
+            "Use at least 12 characters with a mix of uppercase, lowercase, numbers, and symbols."
+        };
+
+        static List<string> changePasswordTopics = new List<string>
+        {
+            "It's good practice to change your passwords regularly, about every 3-6 months.",
+            "Immediately change your password if you suspect your account has been compromised."
+        };
+
+        static List<string> linkTopics = new List<string>
+        {
+            "Always hover over links to see the actual URL before clicking.",
+            "Avoid clicking shortened or suspicious links."
+        };
+
+        static List<string> malwareTopics = new List<string>
+        {
+            "Malware can be disguised as legitimate software or email attachments; avoid downloading from untrusted sources.",
+            "Use reputable antivirus software and keep it updated regularly to detect and remove threats."
+        };
+
+        static List<string> wifiTopics = new List<string>
+        {
+            "Use strong, unique passwords for your home Wi-Fi and enable WPA3 encryption if available.",
+            "Avoid connecting to unsecured public Wi-Fi networks for sensitive activities or use a VPN for protection."
+        };
+
+        static List<string> updateTopics = new List<string>
+        {
+            "Keep your operating system and applications updated to patch security vulnerabilities.",
+            "Updates often include important security improvements that protect against latest threats."
+        };
+
+        static List<string> backupTopics = new List<string>
+        {
+            "Regularly back up important data to an external drive or cloud service to prevent data loss.",
+            "Ensure backups are stored securely and test recovery procedures periodically."
+        };
+
+        static List<string> privacyTopics = new List<string>
+        {
+            "Review and adjust privacy settings on social media and online accounts to limit data sharing.",
+            "Be cautious about the information you share online to reduce the risk of identity theft and targeted attacks."
+        };
+
+        static List<string> twoFactorTopics = new List<string>
+        {
+            "Adds an extra layer of security by requiring a second form of verification beyond just a password.",
+            "Helps prevent unauthorized access even if your password is compromised."
+        };
     }
 
-    // PhishingEmails Class
-    class PhishingEmails
+    class CyberSecurityChatbot
     {
-        private string[] imagePaths = { "PhisingEmail.jpg" }; // Store image paths in an array
+        private List<string> topics;
+        private string userName = "";
+        private string favoriteInfo = ""; // Memory of user's shared info
+        private Random rnd = new Random();
+
+        // Recognized keywords for cybersecurity
+        private Dictionary<string, List<string>> keywordResponses = new Dictionary<string, List<string>>()
+        {
+            {"phishing", new List<string>{
+                "Phishing is a cyber attack that impersonates legitimate organizations to steal sensitive information.",
+                "Be cautious of emails asking for personal info."
+            }},
+            {"password", new List<string>{
+                "A strong password includes uppercase, lowercase, numbers, and symbols.",
+                "Change passwords regularly to stay secure."
+            }},
+            {"update software", new List<string>{
+                "Keeping your software up to date patches security vulnerabilities.",
+                "Enable automatic updates whenever possible."
+            }},
+            {"link", new List<string>{
+                "Hover over links to check their authenticity.",
+                "Avoid clicking on suspicious links."
+            }}
+        };
+
+        // Sentiment/emotion keywords
+        private Dictionary<string, string> emotionKeywords = new Dictionary<string, string>()
+        {
+            {"worried", "worried"},
+            {"nervous", "worried"},
+            {"confused", "frustrated"},
+            {"lost", "frustrated"},
+            {"happy", "happy"},
+            {"excited", "happy"},
+            {"sad", "sad"},
+            {"upset", "sad"},
+            {"angry", "angry"}
+        };
+
+        private Dictionary<string, string> emotionResponses = new Dictionary<string, string>()
+        {
+            {"worried", "It's understandable to feel concerned. I'm here to help."},
+            {"frustrated", "Learning new things can be confusing, but you're doing great."},
+            {"happy", "That's wonderful! Keep up the good work."},
+            {"sad", "I'm here for you. Let's learn together."},
+            {"angry", "It's okay to feel upset. Let's focus on staying safe online."}
+        };
+
+        public CyberSecurityChatbot(List<string> topics)
+        {
+            this.topics = topics;
+        }
 
         public void StartChatbot()
         {
             Console.Clear();
-            Console.WriteLine("A phishing email is a type of cyber attack where attackers impersonate legitimate organizations to steal sensitive information. " +
-                "Always check the sender's address and look for signs such as poor grammar.");
+            Console.WriteLine("Hello! What's your name?");
+            userName = Console.ReadLine();
 
-            DisplayImages(imagePaths);
+            // Immediately ask about their feelings
+            Console.WriteLine($"Hi {userName}! How are you feeling today?");
+            string emotionInput = Console.ReadLine()?.ToLower();
 
-            // Interaction Loop
-            ChatLoop();
-        }
+            // Detect and respond to user emotion
+            HandleEmotion(emotionInput);
 
-        private void ChatLoop()
-        {
+            Console.WriteLine($"Great! Ask me anything about cybersecurity, or type 'exit' to leave.");
+
             while (true)
             {
-                Console.Write("You: ");
-                string userInput = Console.ReadLine();
+                Console.WriteLine("\nYou:");
+                var stopwatch = Stopwatch.StartNew();
+                string input = Console.ReadLine()?.ToLowerInvariant();
+                stopwatch.Stop();
 
-                if (userInput.ToLower() == "exit")
+                if (stopwatch.ElapsedMilliseconds <= 20)
                 {
-                    Console.WriteLine("Chatbot: Goodbye!");
+                    Console.WriteLine("Chatbot: That was fast! Take your time, I'm here when you're ready.");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    Console.WriteLine("Chatbot: Please say something so I can assist you.");
+                    continue;
+                }
+
+                if (input.Contains("exit") || input.Contains("bye") || input.Contains("quit"))
+                {
+                    Console.WriteLine($"Chatbot: Goodbye, {userName}! Stay safe online.");
                     break;
                 }
 
-                string botResponse = GenerateResponse(userInput);
-                Console.WriteLine("Chatbot: " + botResponse);
-            }
-        }
+                // Detect and respond to user emotions
+                HandleEmotion(input);
 
-        private string GenerateResponse(string input)
-        {
-            return input.Contains("What is a phishing email", StringComparison.OrdinalIgnoreCase)
-                ? "A phishing email is a type of cyber attack where attackers impersonate organizations..."
-                : "Interesting! Tell me more.";
-        }
-
-        private void DisplayImages(string[] imagePaths)
-        {
-            Console.WriteLine($"Attempting to load images at: {string.Join(", ", imagePaths)}");
-            foreach (var imagePath in imagePaths)
-            {
-                if (!System.IO.File.Exists(imagePath))
+                // Check for cybersecurity keywords
+                bool keywordFound = false;
+                foreach (var key in keywordResponses.Keys)
                 {
-                    Console.WriteLine($"Error: File '{imagePath}' does not exist.");
-                    continue; // Skip if the file does not exist
-                }
-
-                using (Bitmap image = new Bitmap(imagePath))
-                {
-                    string asciiArt = ConvertToAscii(image);
-                    Console.WriteLine(asciiArt);
-                }
-            }
-        }
-
-        private string ConvertToAscii(Bitmap image)
-        {
-            string asciiChars = "@%#*+=-:. ";
-            int width = 100;  // Width to resize the image to
-            int height = (int)(image.Height * ((double)width / image.Width));
-            using (Bitmap resizedImage = new Bitmap(image, new Size(width, height)))
-            {
-                StringBuilder asciiArt = new StringBuilder();
-                for (int y = 0; y < resizedImage.Height; y++)
-                {
-                    for (int x = 0; x < resizedImage.Width; x++)
+                    if (Regex.IsMatch(input, $@"\b{Regex.Escape(key)}\b"))
                     {
-                        Color pixelColor = resizedImage.GetPixel(x, y);
-                        int grayValue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                        int index = grayValue * (asciiChars.Length - 1) / 255;
-                        asciiArt.Append(asciiChars[index]);
+                        keywordFound = true;
+                        favoriteInfo = key; // store last keyword for recall
+                        var responses = keywordResponses[key];
+                        Console.WriteLine($"Chatbot: {responses[rnd.Next(responses.Count)]}");
+                        break;
                     }
-                    asciiArt.AppendLine();
                 }
-                return asciiArt.ToString();
+
+                // If no keyword, check if user asks for more info
+                if (!keywordFound)
+                {
+                    if (!string.IsNullOrEmpty(favoriteInfo) && input.Contains("more"))
+                    {
+                        var responses = keywordResponses[favoriteInfo];
+                        Console.WriteLine($"Chatbot: Here's more about {favoriteInfo}: {responses[rnd.Next(responses.Count)]}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Chatbot: I'm not sure I understand. Could you rephrase or ask about a specific topic?");
+                    }
+                }
             }
         }
-    }
 
-    // StrongPasswords Class
-    class StrongPasswords
-    {
-        private string[] imagePaths = { "StrongPasswords.jpg" };
-
-        public void StartChatbot()
+        private void HandleEmotion(string input)
         {
-            Console.Clear();
-            Console.WriteLine("Strong passwords are vital for protecting your accounts. They should be at least 12 characters long and include a mix of upper and lower-case letters, numbers, and symbols.");
-            DisplayImages(imagePaths);
-            ChatLoop();
-        }
-
-        private void ChatLoop()
-        {
-            while (true)
+            foreach (var pair in emotionKeywords)
             {
-                Console.Write("You: ");
-                string userInput = Console.ReadLine();
-
-                if (userInput.ToLower() == "exit")
+                if (Regex.IsMatch(input, $@"\b{pair.Key}\b"))
                 {
-                    Console.WriteLine("Chatbot: Goodbye!");
+                    string emotion = pair.Value;
+                    if (emotionResponses.ContainsKey(emotion))
+                    {
+                        Console.WriteLine($"Chatbot: {emotionResponses[emotion]}");
+                    }
                     break;
                 }
-
-                string botResponse = GenerateResponse(userInput);
-                Console.WriteLine("Chatbot: " + botResponse);
-            }
-        }
-
-        private string GenerateResponse(string input)
-        {
-            return input.Contains("Importance of strong passwords", StringComparison.OrdinalIgnoreCase)
-                ? "Strong passwords help protect your accounts from unauthorized access."
-                : "Interesting! Tell me more.";
-        }
-
-        private void DisplayImages(string[] imagePaths)
-        {
-            Console.WriteLine($"Attempting to load images at: {string.Join(", ", imagePaths)}");
-            foreach (var imagePath in imagePaths)
-            {
-                if (!System.IO.File.Exists(imagePath))
-                {
-                    Console.WriteLine($"Error: File '{imagePath}' does not exist.");
-                    continue; // Skip if the file does not exist
-                }
-
-                using (Bitmap image = new Bitmap(imagePath))
-                {
-                    string asciiArt = ConvertToAscii(image);
-                    Console.WriteLine(asciiArt);
-                }
-            }
-        }
-
-        private string ConvertToAscii(Bitmap image)
-        {
-            string asciiChars = "@%#*+=-:. ";
-            int width = 100;  // Width to resize the image to
-            int height = (int)(image.Height * ((double)width / image.Width));
-            using (Bitmap resizedImage = new Bitmap(image, new Size(width, height)))
-            {
-                StringBuilder asciiArt = new StringBuilder();
-                for (int y = 0; y < resizedImage.Height; y++)
-                {
-                    for (int x = 0; x < resizedImage.Width; x++)
-                    {
-                        Color pixelColor = resizedImage.GetPixel(x, y);
-                        int grayValue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                        int index = grayValue * (asciiChars.Length - 1) / 255;
-                        asciiArt.Append(asciiChars[index]);
-                    }
-                    asciiArt.AppendLine();
-                }
-                return asciiArt.ToString();
-            }
-        }
-    }
-
-    // ChangePasswords Class
-    class ChangePasswords
-    {
-        private string[] imagePaths = { "ChangePassword.jpg" };
-
-        public void StartChatbot()
-        {
-            Console.Clear();
-            Console.WriteLine("It is recommended to change your passwords every 3-6 months and immediately if you suspect your account has been compromised.");
-            DisplayImages(imagePaths);
-            ChatLoop();
-        }
-
-        private void ChatLoop()
-        {
-            while (true)
-            {
-                Console.Write("You: ");
-                string userInput = Console.ReadLine();
-
-                if (userInput.ToLower() == "exit")
-                {
-                    Console.WriteLine("Chatbot: Goodbye!");
-                    break;
-                }
-
-                string botResponse = GenerateResponse(userInput);
-                Console.WriteLine("Chatbot: " + botResponse);
-            }
-        }
-
-        private string GenerateResponse(string input)
-        {
-            return input.Contains("How often should I change my passwords", StringComparison.OrdinalIgnoreCase)
-                ? "It is recommended to change your passwords every 3-6 months."
-                : "Interesting! Tell me more.";
-        }
-
-        private void DisplayImages(string[] imagePaths)
-        {
-            Console.WriteLine($"Attempting to load images at: {string.Join(", ", imagePaths)}");
-            foreach (var imagePath in imagePaths)
-            {
-                if (!System.IO.File.Exists(imagePath))
-                {
-                    Console.WriteLine($"Error: File '{imagePath}' does not exist.");
-                    continue; // Skip if the file does not exist
-                }
-
-                using (Bitmap image = new Bitmap(imagePath))
-                {
-                    string asciiArt = ConvertToAscii(image);
-                    Console.WriteLine(asciiArt);
-                }
-            }
-        }
-
-        private string ConvertToAscii(Bitmap image)
-        {
-            string asciiChars = "@%#*+=-:. ";
-            int width = 100;  // Width to resize the image to
-            int height = (int)(image.Height * ((double)width / image.Width));
-            using (Bitmap resizedImage = new Bitmap(image, new Size(width, height)))
-            {
-                StringBuilder asciiArt = new StringBuilder();
-                for (int y = 0; y < resizedImage.Height; y++)
-                {
-                    for (int x = 0; x < resizedImage.Width; x++)
-                    {
-                        Color pixelColor = resizedImage.GetPixel(x, y);
-                        int grayValue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                        int index = grayValue * (asciiChars.Length - 1) / 255;
-                        asciiArt.Append(asciiChars[index]);
-                    }
-                    asciiArt.AppendLine();
-                }
-                return asciiArt.ToString();
-            }
-        }
-    }
-
-    // SafeAndSuspiciousLinks Class
-    class SafeAndSuspiciousLinks
-    {
-        private string[] imagePaths = { "SafeAndSuspiciouslinks.jpg" };
-
-        public void StartChatbot()
-        {
-            Console.Clear();
-            Console.WriteLine("Always hover over links to check the destination before clicking. Look for HTTPS in the URL.");
-            DisplayImages(imagePaths);
-            ChatLoop();
-        }
-
-        private void ChatLoop()
-        {
-            while (true)
-            {
-                Console.Write("You: ");
-                string userInput = Console.ReadLine();
-
-                if (userInput.ToLower() == "exit")
-                {
-                    Console.WriteLine("Chatbot: Goodbye!");
-                    break;
-                }
-
-                string botResponse = GenerateResponse(userInput);
-                Console.WriteLine("Chatbot: " + botResponse);
-            }
-        }
-
-        private string GenerateResponse(string input)
-        {
-            return input.Contains("safe and suspicious links", StringComparison.OrdinalIgnoreCase)
-                ? "To identify safe links, hover over them to see the actual URL. Look for HTTPS."
-                : "Interesting! Tell me more.";
-        }
-
-        private void DisplayImages(string[] imagePaths)
-        {
-            Console.WriteLine($"Attempting to load images at: {string.Join(", ", imagePaths)}");
-            foreach (var imagePath in imagePaths)
-            {
-                if (!System.IO.File.Exists(imagePath))
-                {
-                    Console.WriteLine($"Error: File '{imagePath}' does not exist.");
-                    continue; // Skip if the file does not exist
-                }
-
-                using (Bitmap image = new Bitmap(imagePath))
-                {
-                    string asciiArt = ConvertToAscii(image);
-                    Console.WriteLine(asciiArt);
-                }
-            }
-        }
-
-        private string ConvertToAscii(Bitmap image)
-        {
-            string asciiChars = "@%#*+=-:. ";
-            int width = 100;  // Width to resize the image to
-            int height = (int)(image.Height * ((double)width / image.Width));
-            using (Bitmap resizedImage = new Bitmap(image, new Size(width, height)))
-            {
-                StringBuilder asciiArt = new StringBuilder();
-                for (int y = 0; y < resizedImage.Height; y++)
-                {
-                    for (int x = 0; x < resizedImage.Width; x++)
-                    {
-                        Color pixelColor = resizedImage.GetPixel(x, y);
-                        int grayValue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                        int index = grayValue * (asciiChars.Length - 1) / 255;
-                        asciiArt.Append(asciiChars[index]);
-                    }
-                    asciiArt.AppendLine();
-                }
-                return asciiArt.ToString();
             }
         }
     }
